@@ -24,8 +24,14 @@ class PostFormTests(TestCase):
 
     def setUp(self):
         self.guest_user = Client()
+        self.user = User.objects.create_user(username='test_name')
         self.authorized_user = Client()
         self.authorized_user.force_login(self.post_author)
+        self.group = Group.objects.create(
+            title='Тестовая группа',
+            slug='test-group',
+            description='Описание'
+        )
 
     def test_authorized_user_create_post(self):
         """Проверка создания записи авторизированным клиентом."""
