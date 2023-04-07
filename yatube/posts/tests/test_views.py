@@ -1,4 +1,3 @@
-# deals/tests/test_views.py
 from django import forms
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
@@ -96,12 +95,14 @@ class PaginatorViewsTest(TestCase):
             slug='test_slug',
             description='Тестовое описание группы',
         )
+        cls.post_list = []
         for i in range(13):
-            Post.objects.create(
-                text=f'Пост #{i}',
-                author=cls.user,
-                group=cls.group
+            cls.post_list.append(
+                Post(text=f'Пост #{i}',
+                     author=cls.user,
+                     group=cls.group)
             )
+        Post.objects.bulk_create(cls.post_list)
 
     def setUp(self):
         self.unauthorized_client = Client()
@@ -125,3 +126,19 @@ class PaginatorViewsTest(TestCase):
                     reverse_ + '?page=2').context.get('page_obj')),
                     posts_on_second_page
                 )
+
+    def test_index_group_profile(self):
+        """Используются соответствующие шаблоны."""
+        templates_page_names = {
+            reverse('posts:index'): 'posts/index.html',
+            reverse(
+                'posts:group_list', kwargs={'slug': self.group.slug}
+            ): 'posts/group_list.html',
+            reverse(
+                'posts:profile', kwargs={'username': self.user.username}
+            ): 'posts/profile.html',
+        }
+        for reverse_name, template in templates_page_names.items():
+            with self.subTest(template=template):
+                response = self.unauthorized_client.get(reverse_name)
+                self.assertTemplateUsed(response, template)

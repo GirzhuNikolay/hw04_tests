@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from posts.models import Group, Post
+from http import HTTPStatus
 
 User = get_user_model()
 
@@ -43,7 +44,7 @@ class PostURLTests(TestCase):
         for adress in self.templates:
             with self.subTest(adress):
                 response = self.guest_client.get(adress)
-                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_posts_post_id_edit_url_exists_at_author(self):
         """Страница /posts/post_id/edit/ доступна только автору."""
@@ -51,7 +52,7 @@ class PostURLTests(TestCase):
         self.authorized_client = Client()
         self.authorized_client.force_login(PostURLTests.user)
         response = self.authorized_client.get(f"/posts/{self.post.id}/edit/")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_url_redirect_anonymous_on_auth_login(self):
         """Страница /create/ доступна авторизованному пользователю."""
@@ -61,7 +62,7 @@ class PostURLTests(TestCase):
     def test_unexisting_page_at_desired_location(self):
         """Страница /unexisting_page/ должна выдать ошибку."""
         response = self.guest_client.get("/unexisting_page/")
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
